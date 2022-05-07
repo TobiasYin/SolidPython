@@ -260,6 +260,9 @@ class OpenSCADObject:
             child.set_parent(self)  # type: ignore
         return self
 
+    def append(self, child: Union["OpenSCADObject", Sequence["OpenSCADObject"]]) -> "OpenSCADObject":
+        return self.add(child)
+
     def set_parent(self, parent: "OpenSCADObject"):
         self.parent = parent
 

@@ -1247,6 +1247,17 @@ def obj_tree_str(sp_obj:OpenSCADObject, vars_to_print:Sequence[str]=None) -> str
 
     return s
 
+
+def set_fs(v: float) -> None:
+    print(f"$fs = {v};")
+
+def set_fa(v: float) -> None:
+    print(f"$fa = {v};")
+
+def set_quality(fs:float, fa:float) -> None:
+    set_fa(fa)
+    set_fs(fs)
+
 # =====================
 # = DEPENDENT IMPORTS =
 # =====================
