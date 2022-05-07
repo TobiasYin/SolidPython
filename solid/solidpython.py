@@ -54,10 +54,10 @@ class OpenSCADObject:
         self.is_part_root = False
         self.traits: Dict[str, Dict[str, float]] = {}
 
-    def add_trait(self, trait_name:str, trait_data:Dict[str, float]):
+    def add_trait(self, trait_name: str, trait_data: Dict[str, float]):
         self.traits[trait_name] = trait_data
 
-    def get_trait(self, trait_name:str) -> Optional[Dict[str, float]]:
+    def get_trait(self, trait_name: str) -> Optional[Dict[str, float]]:
         return self.traits.get(trait_name)
 
     def set_hole(self, is_hole: bool = True) -> "OpenSCADObject":
@@ -230,7 +230,7 @@ class OpenSCADObject:
         # with union in the hole segment of the compiled tree.
         # And if you figure out a better way to explain this,
         # please, please do... because I think this works, but I
-        # also think my rationale is shaky and imprecise. 
+        # also think my rationale is shaky and imprecise.
         # -ETJ 19 Feb 2013
         s = s.replace("intersection", "union")
         s = s.replace("difference", "union")
@@ -332,6 +332,24 @@ class OpenSCADObject:
         """
         return objects.intersection()(self, x)
 
+    def translate(self, x: objects.P3) -> "OpenSCADObject":
+        return objects.translate(x)(self)
+
+    def rotate(self, x: objects.P3) -> "OpenSCADObject":
+        return objects.rotate(x)(self)
+
+    def scale(self, x: objects.P3) -> "OpenSCADObject":
+        return objects.scale(x)(self)
+
+    def resize(self, x: objects.P3) -> "OpenSCADObject":
+        return objects.resize(x)(self)
+
+    def minkowski(self, x: "OpenSCADObject") -> "OpenSCADObject":
+        return objects.minkowski()(self, x)
+
+    def hull(self, x: "OpenSCADObject") -> "OpenSCADObject":
+        return objects.minkowski()(self, x)
+
     def _repr_png_(self) -> Optional[bytes]:
         """
         Allow rich clients such as the IPython Notebook, to display the current
@@ -359,6 +377,9 @@ class OpenSCADObject:
             os.unlink(tmp_png.name)
 
         return png_data
+
+    def __repr__(self):
+        return scad_render(self)
 
 
 class IncludedOpenSCADObject(OpenSCADObject):
@@ -393,7 +414,8 @@ class IncludedOpenSCADObject(OpenSCADObject):
                     return os.path.abspath(whole_path)
 
         # No loadable SCAD file was found in sys.path.  Raise an error
-        raise ValueError(f"Unable to find included SCAD file: {include_file_path} in sys.path")
+        raise ValueError(
+            f"Unable to find included SCAD file: {include_file_path} in sys.path")
 
 
 # =========================================
@@ -405,12 +427,13 @@ def _find_include_strings(obj: Union[IncludedOpenSCADObject, OpenSCADObject]) ->
         include_strings.add(obj.include_string)
     for child in obj.children:
         include_strings.update(_find_include_strings(child))
-    # We also accept IncludedOpenSCADObject instances as parameters to functions, 
+    # We also accept IncludedOpenSCADObject instances as parameters to functions,
     # so search in obj.params as well
     for param in obj.params.values():
         if isinstance(param, OpenSCADObject):
             include_strings.update(_find_include_strings(param))
     return include_strings
+
 
 def scad_render(scad_object: OpenSCADObject, file_header: str = '') -> str:
     # Make this object the root of the tree
@@ -424,15 +447,16 @@ def scad_render(scad_object: OpenSCADObject, file_header: str = '') -> str:
     includes = ''.join(include_strings) + "\n"
     scad_body = root._render()
 
-    if file_header and not file_header.endswith('\n'): 
+    if file_header and not file_header.endswith('\n'):
         file_header += '\n'
 
     return file_header + includes + scad_body
 
-def scad_render_animated(func_to_animate: AnimFunc, 
-                         steps: int =20, 
-                         back_and_forth: bool=True, 
-                         file_header: str='') -> str:
+
+def scad_render_animated(func_to_animate: AnimFunc,
+                         steps: int = 20,
+                         back_and_forth: bool = True,
+                         file_header: str = '') -> str:
     # func_to_animate takes a single float argument, _time in [0, 1), and
     # returns an OpenSCADObject instance.
     #
@@ -491,23 +515,25 @@ def scad_render_animated(func_to_animate: AnimFunc,
                            f"}}\n"
     return rendered_string
 
-def scad_render_animated_file(func_to_animate:AnimFunc, 
-                              steps: int=20, 
-                              back_and_forth: bool=True, 
-                              filepath: Optional[str]=None, 
-                              out_dir: PathStr=None, 
-                              file_header: str='', 
-                              include_orig_code: bool=True) -> str:
-    rendered_string = scad_render_animated(func_to_animate, steps, 
-                                            back_and_forth, file_header)
-    return _write_code_to_file(rendered_string, filepath, out_dir=out_dir, 
-                include_orig_code=include_orig_code)
+
+def scad_render_animated_file(func_to_animate: AnimFunc,
+                              steps: int = 20,
+                              back_and_forth: bool = True,
+                              filepath: Optional[str] = None,
+                              out_dir: PathStr = None,
+                              file_header: str = '',
+                              include_orig_code: bool = True) -> str:
+    rendered_string = scad_render_animated(func_to_animate, steps,
+                                           back_and_forth, file_header)
+    return _write_code_to_file(rendered_string, filepath, out_dir=out_dir,
+                               include_orig_code=include_orig_code)
+
 
 def scad_render_to_file(scad_object: OpenSCADObject,
-                        filepath: PathStr=None, 
-                        out_dir: PathStr=None,
-                        file_header: str='', 
-                        include_orig_code: bool=True) -> str:
+                        filepath: PathStr = None,
+                        out_dir: PathStr = None,
+                        file_header: str = '',
+                        include_orig_code: bool = True) -> str:
     header = file_header
     if include_orig_code:
         version = _get_version()
@@ -517,20 +543,21 @@ def scad_render_to_file(scad_object: OpenSCADObject,
     rendered_string = scad_render(scad_object, header)
     return _write_code_to_file(rendered_string, filepath, out_dir, include_orig_code)
 
-def _write_code_to_file(rendered_string: str, 
-                        filepath: PathStr=None, 
-                        out_dir: PathStr=None, 
-                        include_orig_code: bool=True) -> str:
+
+def _write_code_to_file(rendered_string: str,
+                        filepath: PathStr = None,
+                        out_dir: PathStr = None,
+                        include_orig_code: bool = True) -> str:
     try:
         calling_file = Path(calling_module(stack_depth=3).__file__).absolute()
         # Output path is determined four ways:
         # -- If filepath is supplied, use filepath
-        # -- If no filepath is supplied but an out_dir is supplied, 
+        # -- If no filepath is supplied but an out_dir is supplied,
         #       give the calling file a .scad suffix and put it in out_dir
         # -- If neither filepath nor out_dir are supplied, give the new
         #       file a .scad suffix and put it next to the calling file
-        # -- If no path info is supplied and we can't find a calling file 
-        #       (i.e, this is being called from an interactive terminal), 
+        # -- If no path info is supplied and we can't find a calling file
+        #       (i.e, this is being called from an interactive terminal),
         #       write a file to Path.cwd() / 'solid.scad'
         out_path = Path()
         if filepath:
@@ -542,7 +569,7 @@ def _write_code_to_file(rendered_string: str,
             out_path = odp / calling_file.with_suffix('.scad').name
         else:
             out_path = calling_file.with_suffix('.scad')
-        
+
         if include_orig_code:
             rendered_string += sp_code_in_scad_comment(calling_file)
     except AttributeError as e:
@@ -562,6 +589,7 @@ def _write_code_to_file(rendered_string: str,
     out_path.write_text(rendered_string)
     return out_path.absolute().as_posix()
 
+
 def _get_version() -> str:
     """
     Returns SolidPython version
@@ -578,10 +606,12 @@ def _get_version() -> str:
         version_pattern = re.compile(r"version = ['\"]([^'\"]*)['\"]")
         version_file_path = Path(__file__).parent.parent / 'pyproject.toml'
         if version_file_path.exists():
-            version_match = version_pattern.search(version_file_path.read_text())
+            version_match = version_pattern.search(
+                version_file_path.read_text())
             if version_match:
                 version = version_match.group(1)
     return version
+
 
 def sp_code_in_scad_comment(calling_file: PathStr) -> str:
     """
@@ -621,19 +651,20 @@ def parse_scad_callables(filename: str) -> List[dict]:
         args = []
         kwargs = []
 
-        #for some reason solidpython needs to treat all openscad arguments as if
-        #they where optional. I don't know why, but at least to pass the tests
-        #it's neccessary to handle it like this !?!?!
+        # for some reason solidpython needs to treat all openscad arguments as if
+        # they where optional. I don't know why, but at least to pass the tests
+        # it's neccessary to handle it like this !?!?!
         for p in c.parameters:
             kwargs.append(p.name)
-            #if p.optional:
+            # if p.optional:
             #    kwargs.append(p.name)
-            #else:
+            # else:
             #    args.append(p.name)
 
         callables.append({'name': c.name, 'args': args, 'kwargs': kwargs})
 
     return callables
+
 
 def calling_module(stack_depth: int = 2) -> ModuleType:
     """
@@ -656,6 +687,7 @@ def calling_module(stack_depth: int = 2) -> ModuleType:
     if not calling_mod:
         import __main__ as calling_mod  # type: ignore
     return calling_mod
+
 
 def new_openscad_class_str(class_name: str,
                            args: Sequence[str] = None,
@@ -709,6 +741,7 @@ def new_openscad_class_str(class_name: str,
 
     return result
 
+
 def _subbed_keyword(keyword: str) -> str:
     """
     Append an underscore to any python reserved word.
@@ -735,6 +768,7 @@ def _subbed_keyword(keyword: str) -> str:
               f"can be accessed with `{new_key}` in SolidPython\n")
     return new_key
 
+
 def _unsubbed_keyword(subbed_keyword: str) -> str:
     """
     Remove trailing underscore for already-subbed python reserved words.
@@ -754,6 +788,7 @@ def _unsubbed_keyword(subbed_keyword: str) -> str:
         return "$fn"
 
     return subbed_keyword
+
 
 # now that we have the base class defined, we can do a circular import
 from . import objects
@@ -781,6 +816,7 @@ def py2openscad(o: Union[bool, float, str, Iterable]) -> str:
         s += "]"
         return s
     return str(o)
+
 
 def indent(s: str) -> str:
     return s.replace("\n", "\n\t")
