@@ -78,9 +78,13 @@ def observe_scadpy(dir):
 
 
 def run():
-    if len(sys.argv) < 2:
+    if len(sys.argv) == 2 and sys.argv[1] == "-h":
         print("help: please insert watch dir")
-    observe_scadpy(sys.argv[1])
+        return
+    wd = os.getcwd()
+    if len(sys.argv) >= 2:
+        wd = sys.argv[1]
+    observe_scadpy(wd)
 
 if __name__ == "__main__":
     run()
