@@ -27,6 +27,8 @@ class FileEventHandler(FileSystemEventHandler):
         try:
             with open(path, 'rb') as f:
                 content = f.read()
+            if b"no-auto-gen" in content:
+                return False
             if b"from solid import *" in content or b"import solid" in content:
                 return True
         except:
