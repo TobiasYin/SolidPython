@@ -22,7 +22,13 @@ class FileEventHandler(FileSystemEventHandler):
         return self.is_target_ends(event.src_path) and not event.is_directory
 
     def is_target_ends(self, path):
-        return path.endswith(".scad.py")
+        if not path.endswith(".py"):
+            return False
+        with open(path, 'r') as f:
+            content = f.read()
+        if "from solid import *" in content or "import solid" in content:
+            return True
+        return False
 
     def on_moved(self, event):
         if self.is_target(event):
@@ -35,7 +41,9 @@ class FileEventHandler(FileSystemEventHandler):
             self.gen_from_py(event.dest_path)
 
     def get_target_file_name(self, path):
-        return path[:-3]            
+        if path.endswith('.scad.py'):
+            return path[:-3]            
+        return path[:-3] + ".scad"
 
     def on_created(self, event):
         if self.is_target(event):

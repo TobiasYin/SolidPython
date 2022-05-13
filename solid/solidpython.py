@@ -353,6 +353,24 @@ class OpenSCADObject:
     def hull(self, x: "OpenSCADObject") -> "OpenSCADObject":
         return objects.minkowski()(self, x)
 
+    def up(self, z: float) -> "OpenSCADObject":
+        return objects.translate([0, 0, z])(self)
+
+    def down(self, z: float) -> "OpenSCADObject":
+        return objects.translate([0, 0, -z])(self)
+
+    def left(self, x: float) -> "OpenSCADObject":
+        return objects.translate([-x, 0, 0])(self)
+
+    def right(self, x: float) -> "OpenSCADObject":
+        return objects.translate([x, 0, 0])(self)
+
+    def front(self, y: float) -> "OpenSCADObject":
+        return objects.translate([0, y, 0])(self)
+
+    def back(self, y: float) -> "OpenSCADObject":
+        return objects.translate([0, -y, 0])(self)
+
     def _repr_png_(self) -> Optional[bytes]:
         """
         Allow rich clients such as the IPython Notebook, to display the current
