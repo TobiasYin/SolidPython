@@ -24,9 +24,12 @@ class FileEventHandler(FileSystemEventHandler):
     def is_target_ends(self, path):
         if not path.endswith(".py"):
             return False
-        with open(path, 'r') as f:
-            content = f.read()
-        if "from solid import *" in content or "import solid" in content:
+        try:
+            with open(path, 'rb') as f:
+                content = f.read()
+            if b"from solid import *" in content or b"import solid" in content:
+                return True
+        except:
             return True
         return False
 
@@ -54,7 +57,10 @@ class FileEventHandler(FileSystemEventHandler):
         print(f"gen from py {path}")
         out, err = run_script(path)
         if err:
-            print("run script error: {}".format(err))
+            print("run script {} error: {}".format(path, err))
+            return
+        if not out:
+            print(f"run script {path} success, but no output")
             return
         with open(self.get_target_file_name(path), "wb") as f:
             f.write(out)        
