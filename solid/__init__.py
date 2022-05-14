@@ -8,5 +8,9 @@ from .objects import *
 from .patch_euclid import run_euclid_patch
 from .utils import *
 
+# To excute script import from parent folder
+from .path_util import *
+add_import_path("..")
+
 # Type hints
 from .objects import P2, P3, P4, Vec3 , Vec4, Vec34, P3s, P23, Points, Indexes, ScadSize, OpenSCADObjectPlus
